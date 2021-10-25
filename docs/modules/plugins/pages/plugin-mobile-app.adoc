@@ -768,3 +768,71 @@ When I type text `pas1$`
 ----
 
 include::partial$generic-ui-steps.adoc[]
+
+=== Change network condition
+
+==== *_Info_*
+
+Enable or Disable Wi-Fi and Mobile Network for device
+
+WARNING: Only Android supported
+
+==== *_Wording_*
+
+[source,gherkin]
+----
+When I turn $action the Network Connection
+----
+
+==== *_Parameters_*
+
+. `$action` - Name of the action to be performed
+
+==== *_Usage_*
+
+.Sample.story
+[source,gherkin]
+----
+Scenario: Disable Wi-fi and Mobile Network. Enable Wi-fi and Mobile Network.
+When I turn `OFF` the Network Connection
+When I turn `ON` the Network Connection
+----
+
+=== Turn On/Off Wi-Fi
+
+==== *_Info_*
+
+Enable or Disable Wi-Fi for a device
+
+TIP: For IOS devices: to return to the application  you must use a step:
+When I activate application with bundle identifier `$bundleId`.
+For Android devices: no need to return to the application because it remains active.
+
+==== *_Wording_*
+
+[source,gherkin]
+----
+When I turn $action Wi-Fi
+----
+
+==== *_Parameters_*
+
+. `$action` - Name of the action to be performed
+
+==== *_Usage_*
+
+.Sample.story
+[source,gherkin]
+----
+Scenario:
+For IOS: Turn OFF Wi-Fi and activate an application using bundleId.
+
+When I turn 'OFF` Wi-Fi
+When I activate application with bundle identifier `$bundleId`
+
+For Android: Turn OFF Wi-Fi. Turn ON Wi-Fi.
+
+When I turn 'OFF` Wi-Fi
+When I turn 'ON` Wi-Fi
+
+----
