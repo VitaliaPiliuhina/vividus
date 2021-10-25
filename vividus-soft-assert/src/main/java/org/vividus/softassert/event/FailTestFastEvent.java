@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package org.vividus.bdd.issue;
+package org.vividus.softassert.event;
 
-import java.util.Optional;
-
-import org.vividus.softassert.issue.IIssueStateProvider;
-
-public class IssueStateProvider implements IIssueStateProvider
+public class FailTestFastEvent
 {
-    private static final Optional<String> UNKNOWN = Optional.of("UNKNOWN");
+    private final boolean failTestCaseFast;
+    private final boolean failTestSuiteFast;
 
-    @Override
-    public Optional<String> getIssueStatus(String issue)
+    public FailTestFastEvent(boolean failTestCaseFast, boolean failTestSuiteFast)
     {
-        return UNKNOWN;
+        this.failTestCaseFast = failTestCaseFast;
+        this.failTestSuiteFast = failTestSuiteFast;
     }
 
-    @Override
-    public Optional<String> getIssueResolution(String issue)
+    public boolean isFailTestCaseFast()
     {
-        return UNKNOWN;
+        return failTestCaseFast;
+    }
+
+    public boolean isFailTestSuiteFast()
+    {
+        return failTestSuiteFast;
     }
 }
