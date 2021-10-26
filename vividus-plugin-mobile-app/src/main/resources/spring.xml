@@ -51,7 +51,7 @@
         <constructor-arg index="0" value="${mobile-environment.device.folder-for-file-upload}" />
     </bean>
 
-    <bean id="networkConditions" class="org.vividus.bdd.mobileapp.steps.NetworkConditionsSteps" />
+    <bean id="networkConditionsSteps" class="org.vividus.bdd.mobileapp.steps.NetworkConditionsSteps" />
 
     <bean id="vividusWebDriverFactory" class="org.vividus.selenium.mobileapp.VividusMobileAppDriverFactory" />
 
