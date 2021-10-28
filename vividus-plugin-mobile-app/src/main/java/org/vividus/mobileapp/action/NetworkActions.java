@@ -21,10 +21,10 @@ import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vividus.selenium.IWebDriverProvider;
-import org.vividus.selenium.manager.GenericWebDriverManager;
 
 import io.appium.java_client.MobileElement;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.connection.ConnectionState;
 import io.appium.java_client.android.connection.ConnectionStateBuilder;
 import io.appium.java_client.ios.IOSDriver;
 
@@ -33,103 +33,71 @@ public class NetworkActions
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkActions.class);
 
     private final IWebDriverProvider webDriverProvider;
-    private final GenericWebDriverManager genericWebDriverManager;
 
-    public NetworkActions(IWebDriverProvider webDriverProvider, GenericWebDriverManager genericWebDriverManager)
+    public NetworkActions(IWebDriverProvider webDriverProvider)
     {
-        this.genericWebDriverManager = genericWebDriverManager;
         this.webDriverProvider = webDriverProvider;
     }
 
-    public void changeNetworkConnection(State action)
+    public void enableNetworkConnectionState(State state)
     {
-        action.changeWiFiAndDataConditions(genericWebDriverManager, webDriverProvider);
+        webDriverProvider.getUnwrapped(AndroidDriver.class).setConnection(state.getEnableConnectionState());
     }
 
-    public void switchWiFi(State action)
+    public void disableNetworkConnectionState(State state)
     {
-        action.switchWiFiToggle(genericWebDriverManager, webDriverProvider);
+        webDriverProvider.getUnwrapped(AndroidDriver.class).setConnection(state.getDisableConnectionState());
+    }
+
+    public void switchWiFiForIOS(String mode)
+    {
+        HashMap<String, Object> value = new HashMap<>();
+        value.put("bundleId", "com.apple.Preferences");
+        IOSDriver driver = webDriverProvider.getUnwrapped(IOSDriver.class);
+        driver.executeScript("mobile: launchApp", value);
+        driver.executeScript("mobile: activateApp", value);
+        driver.findElementByXPath("//XCUIElementTypeCell[@name='Wi-Fi']").click();
+        MobileElement switchBtn = (MobileElement) driver.findElementByXPath("//XCUIElementTypeSwitch");
+        String switchStatus = switchBtn.getAttribute("value");
+        boolean isNeedWiFiOn = "ON".equalsIgnoreCase(mode);
+        if ("1".equalsIgnoreCase(switchStatus) && isNeedWiFiOn || "0".equalsIgnoreCase(switchStatus) && !isNeedWiFiOn)
+        {
+            switchBtn.click();
+        }
+        else
+        {
+            LOGGER.atInfo().addArgument(mode).log("Wi-Fi is already {}.");
+        }
     }
 
     public enum State
     {
-        ON
+        WIFI(new ConnectionStateBuilder().withWiFiEnabled().build(),
+                new ConnectionStateBuilder().withWiFiDisabled().build()), DATA(
+                        new ConnectionStateBuilder().withDataEnabled().build(),
+                        new ConnectionStateBuilder().withDataDisabled().build()), AIRPLANE(
+                                new ConnectionStateBuilder().withAirplaneModeEnabled().build(),
+                                new ConnectionStateBuilder().withAirplaneModeDisabled().build()), ALL(
+                                        new ConnectionStateBuilder().withWiFiEnabled().withDataEnabled().build(),
+                                        new ConnectionStateBuilder().withWiFiDisabled().withDataDisabled().build());
+
+        private final ConnectionState disableConnectionState;
+        private final ConnectionState enableConnectionState;
+
+        State(ConnectionState enableConnectionState, ConnectionState disableConnectionState)
         {
-            @Override
-            public void switchWiFiToggle(GenericWebDriverManager genericWebDriverManager,
-                    IWebDriverProvider webDriverProvider)
-            {
-                if (genericWebDriverManager.isAndroid()
-                        && !webDriverProvider.getUnwrapped(AndroidDriver.class).getConnection().isWiFiEnabled())
-                {
-                    webDriverProvider.getUnwrapped(AndroidDriver.class).toggleWifi();
-                }
-                if (genericWebDriverManager.isIOS())
-                {
-                    switchWiFiForIOS(webDriverProvider, true);
-                }
-            }
+            this.enableConnectionState = enableConnectionState;
+            this.disableConnectionState = disableConnectionState;
+        }
 
-            @Override
-            public void changeWiFiAndDataConditions(GenericWebDriverManager genericWebDriverManager,
-                    IWebDriverProvider webDriverProvider)
-            {
-                webDriverProvider.getUnwrapped(AndroidDriver.class)
-                        .setConnection(new ConnectionStateBuilder().withWiFiEnabled().withDataEnabled().build());
-            }
-        },
-
-        OFF
+        public ConnectionState getDisableConnectionState()
         {
-            @Override
-            public void switchWiFiToggle(GenericWebDriverManager genericWebDriverManager,
-                    IWebDriverProvider webDriverProvider)
-            {
-                if (genericWebDriverManager.isAndroid()
-                        && webDriverProvider.getUnwrapped(AndroidDriver.class).getConnection().isWiFiEnabled())
-                {
-                    webDriverProvider.getUnwrapped(AndroidDriver.class).toggleWifi();
-                }
-                if (genericWebDriverManager.isIOS())
-                {
-                    switchWiFiForIOS(webDriverProvider, false);
-                }
-            }
+            return disableConnectionState;
+        }
 
-            @Override
-            public void changeWiFiAndDataConditions(GenericWebDriverManager genericWebDriverManager,
-                    IWebDriverProvider webDriverProvider)
-            {
-                webDriverProvider.getUnwrapped(AndroidDriver.class)
-                        .setConnection(new ConnectionStateBuilder().withWiFiDisabled().withDataDisabled().build());
-            }
-        };
-
-        public abstract void switchWiFiToggle(GenericWebDriverManager genericWebDriverManager,
-                IWebDriverProvider webDriverProvider);
-
-        public abstract void changeWiFiAndDataConditions(GenericWebDriverManager genericWebDriverManager,
-                IWebDriverProvider webDriverProvider);
-
-        public void switchWiFiForIOS(IWebDriverProvider webDriverProvider, boolean isNeedWiFiOn)
+        public ConnectionState getEnableConnectionState()
         {
-            HashMap<String, Object> value = new HashMap<>();
-            value.put("bundleId", "com.apple.Preferences");
-            IOSDriver driver = webDriverProvider.getUnwrapped(IOSDriver.class);
-            driver.executeScript("mobile: launchApp", value);
-            driver.executeScript("mobile: activateApp", value);
-            driver.findElementByXPath("//XCUIElementTypeCell[@name='Wi-Fi']").click();
-            MobileElement switchBtn = (MobileElement) driver.findElementByXPath("//XCUIElementTypeSwitch");
-            String switchStatus = switchBtn.getAttribute("value");
-            if ("1".equalsIgnoreCase(switchStatus) && isNeedWiFiOn
-                    || "0".equalsIgnoreCase(switchStatus) && !isNeedWiFiOn)
-            {
-                switchBtn.click();
-            }
-            else
-            {
-                LOGGER.atInfo().addArgument(isNeedWiFiOn ? ON.toString() : OFF.toString()).log("Wi-Fi is already {}.");
-            }
+            return enableConnectionState;
         }
     }
 }

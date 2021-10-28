@@ -19,6 +19,7 @@ package org.vividus.bdd.mobileapp.steps;
 import org.apache.commons.lang3.Validate;
 import org.jbehave.core.annotations.When;
 import org.vividus.mobileapp.action.NetworkActions;
+import org.vividus.mobileapp.action.NetworkActions.State;
 import org.vividus.selenium.manager.GenericWebDriverManager;
 
 public final class NetworkConditionsSteps
@@ -33,24 +34,37 @@ public final class NetworkConditionsSteps
     }
 
     /**
-     * Turn <b>direction</b> Wi-Fi and Mobile Network for device
-     * @param action to be executed
+     * Turn <b>direction</b> for device
+     * @param state to be executed
      */
-    @When("I turn `$action` the Network Connection")
-    public void changeNetworkConnection(NetworkActions.State action)
+    @When("I enable '$state' state")
+    public void enableNetworkConnection(State state)
     {
         Validate.isTrue(genericWebDriverManager.isAndroidNativeApp(),
-                "Turn On/Off the Network Connection is supported for Android only");
-        networkActions.changeNetworkConnection(action);
+                String.format("Enable %s is supported for Android only", state));
+        networkActions.enableNetworkConnectionState(state);
+    }
+
+    /**
+     * Turn <b>direction</b> for device
+     * @param state to be executed
+     */
+    @When("I disable '$state' state")
+    public void disableNetworkConnection(State state)
+    {
+        Validate.isTrue(genericWebDriverManager.isAndroidNativeApp(),
+                String.format("Disable %s is supported for Android only", state));
+        networkActions.disableNetworkConnectionState(state);
     }
 
     /**
      * Turn <b>direction</b> Wi-Fi
-     * @param action to be executed
+     * @param mode to be executed
      */
-    @When("I turn `$action` Wi-Fi")
-    public void switchWiFi(NetworkActions.State action)
+    @When("I `$mode` Wi-Fi for IOS")
+    public void switchWiFi(String mode)
     {
-        networkActions.switchWiFi(action);
+        Validate.isTrue(genericWebDriverManager.isIOSNativeApp(), "This step is for IOS only");
+        networkActions.switchWiFiForIOS(mode);
     }
 }

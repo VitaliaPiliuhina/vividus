@@ -23,15 +23,17 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.mobileapp.action.NetworkActions;
+import org.vividus.mobileapp.action.NetworkActions.State;
 import org.vividus.selenium.manager.GenericWebDriverManager;
 
 @ExtendWith(MockitoExtension.class)
-class NetworkConditionsStepsTests
+public class NetworkConditionsStepsTests
 {
     @Mock
     private GenericWebDriverManager genericWebDriverManager;
@@ -41,28 +43,56 @@ class NetworkConditionsStepsTests
     private NetworkConditionsSteps networkConditionsSteps;
 
     @ParameterizedTest
-    @EnumSource(value = NetworkActions.State.class, names = { "ON", "OFF" })
-    void shouldFailForChangeNetworkConnectionForNotAndroid(NetworkActions.State state)
+    @EnumSource(State.class)
+    void shouldFailForEnableNetworkConnectionForNotAndroid(State state)
     {
         IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
-                () -> networkConditionsSteps.changeNetworkConnection(state));
-        assertEquals("Turn On/Off the Network Connection is supported for Android only", iae.getMessage());
+                () -> networkConditionsSteps.enableNetworkConnection(state));
+        assertEquals(String.format("Enable %s is supported for Android only", state), iae.getMessage());
     }
 
     @ParameterizedTest
-    @EnumSource(value = NetworkActions.State.class, names = { "ON", "OFF" })
-    void shouldChangeNetworkConnection(NetworkActions.State state)
+    @EnumSource(State.class)
+    void shouldFailForDisableNetworkConnectionForNotAndroid(State state)
+    {
+        IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+                () -> networkConditionsSteps.disableNetworkConnection(state));
+        assertEquals(String.format("Disable %s is supported for Android only", state), iae.getMessage());
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "ON", "OFF" })
+    void shouldFailForChangeStateOfWiFiForIOS(String state)
+    {
+        IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+                () -> networkConditionsSteps.switchWiFi(state));
+        assertEquals("This step is for IOS only", iae.getMessage());
+    }
+
+    @ParameterizedTest
+    @EnumSource(State.class)
+    void shouldEnableNetworkConnection(State state)
     {
         when(genericWebDriverManager.isAndroidNativeApp()).thenReturn(true);
-        networkConditionsSteps.changeNetworkConnection(state);
-        verify(networkActions).changeNetworkConnection(state);
+        networkConditionsSteps.enableNetworkConnection(state);
+        verify(networkActions).enableNetworkConnectionState(state);
     }
 
     @ParameterizedTest
-    @EnumSource(value = NetworkActions.State.class, names = { "ON", "OFF" })
-    void shouldSwitchWiFi(NetworkActions.State state)
+    @EnumSource(State.class)
+    void shouldDisableNetworkConnection(State state)
     {
-        networkConditionsSteps.switchWiFi(state);
-        verify(networkActions).switchWiFi(state);
+        when(genericWebDriverManager.isAndroidNativeApp()).thenReturn(true);
+        networkConditionsSteps.disableNetworkConnection(state);
+        verify(networkActions).disableNetworkConnectionState(state);
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "ON", "OFF" })
+    void shouldSwitchWiFi(String mode)
+    {
+        when(genericWebDriverManager.isIOSNativeApp()).thenReturn(true);
+        networkConditionsSteps.switchWiFi(mode);
+        verify(networkActions).switchWiFiForIOS(mode);
     }
 }

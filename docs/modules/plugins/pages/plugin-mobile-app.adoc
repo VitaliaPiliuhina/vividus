@@ -769,70 +769,99 @@ When I type text `pas1$`
 
 include::partial$generic-ui-steps.adoc[]
 
-=== Change network condition
+=== Enable network condition
 
-==== *_Info_*
-
-Enable or Disable Wi-Fi and Mobile Network for device
+Enable network state for a device.
 
 WARNING: Only Android supported
 
-==== *_Wording_*
+[cols="1,4"]
+|===
+
+|`WIFI`
+|Enable Wi-Fi connection state only.
+
+|`DATA`
+|Enable data connection state only.
+
+|`AIRPLANE`
+|Enable Airplane Mode state only.
+
+|`ALL`
+|Enable data and WiFi state.
+
+|===
 
 [source,gherkin]
 ----
-When I turn $action the Network Connection
+When I enable $state state
 ----
 
-==== *_Parameters_*
-
-. `$action` - Name of the action to be performed
+* `$action` - The name of the action to be performed
 
 ==== *_Usage_*
 
-.Sample.story
+.Run pipeline
 [source,gherkin]
 ----
-Scenario: Disable Wi-fi and Mobile Network. Enable Wi-fi and Mobile Network.
-When I turn `OFF` the Network Connection
-When I turn `ON` the Network Connection
+When I enable `WIFI` state
+----
+
+=== Disable network condition
+
+Disable network state for a device.
+
+WARNING: Only Android supported
+
+[cols="1,4"]
+|===
+
+|`WIFI`
+|Enable Wi-Fi connection state only.
+
+|`DATA`
+|Enable data connection state only.
+
+|`AIRPLANE`
+|Enable Airplane Mode state only.
+
+|`ALL`
+|Enable data and WiFi state.
+
+|===
+
+[source,gherkin]
+----
+When I disable $state state
+----
+
+* `$action` - The name of the action to be performed
+
+==== *_Usage_*
+
+.Run pipeline
+[source,gherkin]
+----
+When I disable `WIFI` state
 ----
 
 === Turn On/Off Wi-Fi
 
-==== *_Info_*
-
-Enable or Disable Wi-Fi for a device
+On/Off Wi-Fi for a device
 
 TIP: For IOS devices: to return to the application  you must use a step:
 When I activate application with bundle identifier `$bundleId`.
-For Android devices: no need to return to the application because it remains active.
-
-==== *_Wording_*
 
 [source,gherkin]
 ----
-When I turn $action Wi-Fi
+When I turn $mode Wi-Fi
 ----
 
-==== *_Parameters_*
+* `$mode` - Name of the action to be performed
 
-. `$action` - Name of the action to be performed
-
-==== *_Usage_*
-
-.Sample.story
+.Run.story
 [source,gherkin]
 ----
-Scenario:
-For IOS: Turn OFF Wi-Fi and activate an application using bundleId.
-
 When I turn 'OFF` Wi-Fi
 When I activate application with bundle identifier `$bundleId`
-
-For Android: Turn OFF Wi-Fi. Turn ON Wi-Fi.
-
-When I turn 'OFF` Wi-Fi
-When I turn 'ON` Wi-Fi
-
 ----

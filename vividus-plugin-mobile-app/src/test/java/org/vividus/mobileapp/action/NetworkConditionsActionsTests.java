@@ -39,6 +39,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openqa.selenium.HasCapabilities;
+import org.vividus.mobileapp.action.NetworkActions.State;
 import org.vividus.selenium.IWebDriverProvider;
 import org.vividus.selenium.manager.GenericWebDriverManager;
 
@@ -54,71 +55,62 @@ class NetworkConditionsActionsTests
     private static final String XCUIELEMENT_TYPE_CELL = "//XCUIElementTypeCell[@name='Wi-Fi']";
     private static final String XCUIELEMENT_TYPE_SWITCH = "//XCUIElementTypeSwitch";
 
-    @Mock private IWebDriverProvider webDriverProvider;
-    @Mock private GenericWebDriverManager genericWebDriverManager;
-    @InjectMocks private NetworkActions networkActions;
+    @Mock
+    private IWebDriverProvider webDriverProvider;
+    @Mock
+    private GenericWebDriverManager genericWebDriverManager;
+    @InjectMocks
+    private NetworkActions networkActions;
 
     private final TestLogger logger = TestLoggerFactory.getTestLogger(NetworkActions.class);
 
     @ParameterizedTest
-    @EnumSource(value = NetworkActions.State.class, names = {"ON", "OFF"})
-    void testConnectionStateBuilder(NetworkActions.State state)
+    @EnumSource(State.class)
+    void testDisableConnectionStateBuilder(State state)
     {
         AndroidDriver driver = mock(AndroidDriver.class, withSettings().extraInterfaces(HasCapabilities.class));
         when(webDriverProvider.getUnwrapped(AndroidDriver.class)).thenReturn(driver);
-        networkActions.changeNetworkConnection(state);
+        networkActions.disableNetworkConnectionState(state);
         verify(driver).setConnection(any(ConnectionState.class));
     }
 
     @ParameterizedTest
-    @EnumSource(value = NetworkActions.State.class, names = {"ON", "OFF"})
-    void testWiFiToggleForAndroid()
+    @EnumSource(State.class)
+    void testEnableConnectionStateBuilder(State state)
     {
-        ConnectionState state = mock(ConnectionState.class);
         AndroidDriver driver = mock(AndroidDriver.class, withSettings().extraInterfaces(HasCapabilities.class));
         when(webDriverProvider.getUnwrapped(AndroidDriver.class)).thenReturn(driver);
-        when(genericWebDriverManager.isAndroid()).thenReturn(true);
-        when(driver.getConnection()).thenReturn(state);
-        networkActions.switchWiFi(NetworkActions.State.ON);
-        verify(driver).toggleWifi();
+        networkActions.enableNetworkConnectionState(state);
+        verify(driver).setConnection(any(ConnectionState.class));
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "'1', ON",
-            "'0', OFF"
-    })
-    void testWiFiToggleForIOS(String toggleState, NetworkActions.State state)
+    @CsvSource({ "'1', ON", "'0', OFF" })
+    void testWiFiToggleForIOS(String toggleState, String state)
     {
         IOSDriver driver = mock(IOSDriver.class, withSettings().extraInterfaces(HasCapabilities.class));
         MobileElement wiFiElement = mock(MobileElement.class);
         MobileElement switchBtn = mock(MobileElement.class);
         when(webDriverProvider.getUnwrapped(IOSDriver.class)).thenReturn(driver);
-        when(genericWebDriverManager.isIOS()).thenReturn(true);
         when(driver.findElementByXPath(XCUIELEMENT_TYPE_CELL)).thenReturn(wiFiElement);
         when(driver.findElementByXPath(XCUIELEMENT_TYPE_SWITCH)).thenReturn(switchBtn);
         when(switchBtn.getAttribute(VALUE)).thenReturn(toggleState);
-        networkActions.switchWiFi(state);
+        networkActions.switchWiFiForIOS(state);
         verify(switchBtn).click();
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "'0', ON",
-            "'1', OFF"
-    })
-    void testAlreadyModifiedWiFiToggleForIOS(String toggleState, NetworkActions.State state)
+    @CsvSource({ "'0', ON", "'1', OFF" })
+    void testAlreadyModifiedWiFiToggleForIOS(String toggleState, String mode)
     {
         IOSDriver driver = mock(IOSDriver.class, withSettings().extraInterfaces(HasCapabilities.class));
         MobileElement wiFiElement = mock(MobileElement.class);
         MobileElement switchBtn = mock(MobileElement.class);
         when(webDriverProvider.getUnwrapped(IOSDriver.class)).thenReturn(driver);
-        when(genericWebDriverManager.isIOS()).thenReturn(true);
         when(driver.findElementByXPath(XCUIELEMENT_TYPE_CELL)).thenReturn(wiFiElement);
         when(driver.findElementByXPath(XCUIELEMENT_TYPE_SWITCH)).thenReturn(switchBtn);
         when(switchBtn.getAttribute(VALUE)).thenReturn(toggleState);
-        networkActions.switchWiFi(state);
-        assertThat(logger.getLoggingEvents(),
-                is(List.of(info("Wi-Fi is already {}.", state.toString()))));
+        networkActions.switchWiFiForIOS(mode);
+        assertThat(logger.getLoggingEvents(), is(List.of(info("Wi-Fi is already {}.", mode))));
     }
 }
