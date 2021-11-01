@@ -21,19 +21,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.mobileapp.action.NetworkActions;
+import org.vividus.mobileapp.action.NetworkActions.Mode;
 import org.vividus.mobileapp.action.NetworkActions.State;
 import org.vividus.selenium.manager.GenericWebDriverManager;
 
 @ExtendWith(MockitoExtension.class)
-public class NetworkConditionsStepsTests
+class NetworkConditionsStepsTests
 {
     @Mock
     private GenericWebDriverManager genericWebDriverManager;
@@ -43,56 +46,50 @@ public class NetworkConditionsStepsTests
     private NetworkConditionsSteps networkConditionsSteps;
 
     @ParameterizedTest
-    @EnumSource(State.class)
-    void shouldFailForEnableNetworkConnectionForNotAndroid(State state)
+    @MethodSource("dataProvider")
+    void shouldFailForEnableNetworkConnectionForNotIOS(Mode mode, State state)
     {
+        when(genericWebDriverManager.isIOS()).thenReturn(true);
         IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
-                () -> networkConditionsSteps.enableNetworkConnection(state));
-        assertEquals(String.format("Enable %s is supported for Android only", state), iae.getMessage());
+                () -> networkConditionsSteps.changeNetworkConnection(mode, state));
+        assertEquals(String.format("%s is not supported for IOS", state), iae.getMessage());
     }
 
     @ParameterizedTest
-    @EnumSource(State.class)
-    void shouldFailForDisableNetworkConnectionForNotAndroid(State state)
+    @MethodSource("dataProviderForIOS")
+    void shouldEnableNetworkConnectionForIOS(Mode mode, State state)
     {
-        IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
-                () -> networkConditionsSteps.disableNetworkConnection(state));
-        assertEquals(String.format("Disable %s is supported for Android only", state), iae.getMessage());
+        when(genericWebDriverManager.isIOS()).thenReturn(true);
+        networkConditionsSteps.changeNetworkConnection(mode, state);
+        verify(networkActions).changeNetworkConnectionState(mode, state);
     }
 
     @ParameterizedTest
-    @CsvSource({ "ON", "OFF" })
-    void shouldFailForChangeStateOfWiFiForIOS(String state)
+    @MethodSource("dataProviderForAndroid")
+    void shouldEnableNetworkConnectionForAndroid(Mode mode, State state)
     {
-        IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
-                () -> networkConditionsSteps.switchWiFi(state));
-        assertEquals("This step is for IOS only", iae.getMessage());
+        when(genericWebDriverManager.isAndroid()).thenReturn(true);
+        networkConditionsSteps.changeNetworkConnection(mode, state);
+        verify(networkActions).changeNetworkConnectionState(mode, state);
     }
 
-    @ParameterizedTest
-    @EnumSource(State.class)
-    void shouldEnableNetworkConnection(State state)
+    private static Stream<Arguments> dataProviderForAndroid()
     {
-        when(genericWebDriverManager.isAndroidNativeApp()).thenReturn(true);
-        networkConditionsSteps.enableNetworkConnection(state);
-        verify(networkActions).enableNetworkConnectionState(state);
+        return Stream.of(Arguments.of(Mode.DISABLE, State.WIFI), Arguments.of(Mode.ENABLE, State.WIFI),
+                Arguments.of(Mode.DISABLE, State.DATA), Arguments.of(Mode.ENABLE, State.DATA),
+                Arguments.of(Mode.DISABLE, State.AIRPLANE_MODE), Arguments.of(Mode.ENABLE, State.AIRPLANE_MODE),
+                Arguments.of(Mode.DISABLE, State.ALL), Arguments.of(Mode.ENABLE, State.ALL));
     }
 
-    @ParameterizedTest
-    @EnumSource(State.class)
-    void shouldDisableNetworkConnection(State state)
+    private static Stream<Arguments> dataProviderForIOS()
     {
-        when(genericWebDriverManager.isAndroidNativeApp()).thenReturn(true);
-        networkConditionsSteps.disableNetworkConnection(state);
-        verify(networkActions).disableNetworkConnectionState(state);
+        return Stream.of(Arguments.of(Mode.DISABLE, State.WIFI), Arguments.of(Mode.ENABLE, State.WIFI),
+                Arguments.of(Mode.DISABLE, State.DATA), Arguments.of(Mode.ENABLE, State.DATA));
     }
 
-    @ParameterizedTest
-    @CsvSource({ "ON", "OFF" })
-    void shouldSwitchWiFi(String mode)
+    private static Stream<Arguments> dataProvider()
     {
-        when(genericWebDriverManager.isIOSNativeApp()).thenReturn(true);
-        networkConditionsSteps.switchWiFi(mode);
-        verify(networkActions).switchWiFiForIOS(mode);
+        return Stream.of(Arguments.of(Mode.DISABLE, State.ALL), Arguments.of(Mode.ENABLE, State.ALL),
+                Arguments.of(Mode.DISABLE, State.AIRPLANE_MODE), Arguments.of(Mode.ENABLE, State.AIRPLANE_MODE));
     }
 }

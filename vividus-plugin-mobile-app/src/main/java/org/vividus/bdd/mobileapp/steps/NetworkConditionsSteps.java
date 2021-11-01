@@ -19,6 +19,7 @@ package org.vividus.bdd.mobileapp.steps;
 import org.apache.commons.lang3.Validate;
 import org.jbehave.core.annotations.When;
 import org.vividus.mobileapp.action.NetworkActions;
+import org.vividus.mobileapp.action.NetworkActions.Mode;
 import org.vividus.mobileapp.action.NetworkActions.State;
 import org.vividus.selenium.manager.GenericWebDriverManager;
 
@@ -34,37 +35,17 @@ public final class NetworkConditionsSteps
     }
 
     /**
-     * Turn <b>direction</b> for device
-     * @param state to be executed
-     */
-    @When("I enable '$state' state")
-    public void enableNetworkConnection(State state)
-    {
-        Validate.isTrue(genericWebDriverManager.isAndroidNativeApp(),
-                String.format("Enable %s is supported for Android only", state));
-        networkActions.enableNetworkConnectionState(state);
-    }
-
-    /**
-     * Turn <b>direction</b> for device
-     * @param state to be executed
-     */
-    @When("I disable '$state' state")
-    public void disableNetworkConnection(State state)
-    {
-        Validate.isTrue(genericWebDriverManager.isAndroidNativeApp(),
-                String.format("Disable %s is supported for Android only", state));
-        networkActions.disableNetworkConnectionState(state);
-    }
-
-    /**
-     * Turn <b>direction</b> Wi-Fi
+     * <b>mode</b> <b>state</b> for device
      * @param mode to be executed
+     * @param state to be executed
      */
-    @When("I `$mode` Wi-Fi for IOS")
-    public void switchWiFi(String mode)
+    @When("I '$mode' '$state'")
+    public void changeNetworkConnection(Mode mode, State state)
     {
-        Validate.isTrue(genericWebDriverManager.isIOSNativeApp(), "This step is for IOS only");
-        networkActions.switchWiFiForIOS(mode);
+        Validate.isTrue(
+                genericWebDriverManager.isAndroid()
+                        || genericWebDriverManager.isIOS() && (State.DATA.equals(state) || State.WIFI.equals(state)),
+                String.format("%s is not supported for IOS", state));
+        networkActions.changeNetworkConnectionState(mode, state);
     }
 }
