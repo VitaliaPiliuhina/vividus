@@ -771,52 +771,52 @@ include::partial$generic-ui-steps.adoc[]
 
 === Change network condition
 
-Enable or disable network state for a device.
+Turn ON/OFF network condition.
 
 TIP: For IOS devices: to return to the application  you must use a step:
 When I activate application with bundle identifier `$bundleId`.
 
+[source,gherkin]
+----
+When I turn '$toggle' '$mode' network connection
+----
+* `$toggle` - The name of the action to be performed
+* `$mode` - The name of the action to be performed
+
 [cols="2,2,2", options="header"]
 |===
 
-|State
+|Mode
 |Platform
 |Description
 
 |`WIFI`
-|Android, IOS
-|Enable Wi-Fi connection state only.
+|Android, iOS
+|Turn ON/OFF Wi-Fi connection state only.
 
-|`DATA`
-|Android, IOS
-|Enable data connection state only.
+|`MOBILE_DATA`
+|Android, iOS
+|Turn ON/OFF Mobile Data connection state only.
 
 |`AIRPLANE`
 |Android
-|Enable Airplane Mode state only.
+|Turn ON/OFF Airplane Mode only.
 
 |`ALL`
 |Android
-|Enable data and WiFi state.
+|Turn ON/OFF Mobile Data and WiFi state.
 
 |===
 
+.Turn OFF WIFI for Android
 [source,gherkin]
 ----
-When I $mode $state
+When I turn 'OFF' `WIFI` network connection
 ----
-* `$mode` - The name of the action to be performed
-* `$action` - The name of the action to be performed
 
-==== *_Usage_*
-
-.Run pipeline
+.Turn OFF WIFI for iOS
 [source,gherkin]
 ----
-For Android:
-When I 'DISABLE' `WIFI`
-
-For IOS:
-When I 'DISABLE' `WIFI`
+When I turn 'OFF' `WIFI` network connection
 When I activate application with bundle identifier `$bundleId`
 ----

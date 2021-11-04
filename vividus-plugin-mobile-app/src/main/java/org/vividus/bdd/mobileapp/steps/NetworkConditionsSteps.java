@@ -20,7 +20,7 @@ import org.apache.commons.lang3.Validate;
 import org.jbehave.core.annotations.When;
 import org.vividus.mobileapp.action.NetworkActions;
 import org.vividus.mobileapp.action.NetworkActions.Mode;
-import org.vividus.mobileapp.action.NetworkActions.State;
+import org.vividus.mobileapp.action.NetworkActions.NetworkToggle;
 import org.vividus.selenium.manager.GenericWebDriverManager;
 
 public final class NetworkConditionsSteps
@@ -35,17 +35,17 @@ public final class NetworkConditionsSteps
     }
 
     /**
-     * <b>mode</b> <b>state</b> for device
-     * @param mode to be executed
-     * @param state to be executed
+     * Turn <b>toggle</b> <b>state</b> network connection
+     * @param toggle switch ON or OFF mode
+     * @param mode is network condition to be executed
      */
-    @When("I '$mode' '$state'")
-    public void changeNetworkConnection(Mode mode, State state)
+    @When("I turn $toggle '$mode' network connection")
+    public void changeNetworkConnection(NetworkToggle toggle, Mode mode)
     {
         Validate.isTrue(
                 genericWebDriverManager.isAndroid()
-                        || genericWebDriverManager.isIOS() && (State.DATA.equals(state) || State.WIFI.equals(state)),
-                String.format("%s is not supported for IOS", state));
-        networkActions.changeNetworkConnectionState(mode, state);
+                        || genericWebDriverManager.isIOS() && (Mode.MOBILE_DATA.equals(mode) || Mode.WIFI.equals(mode)),
+                "%s is not supported for IOS", mode);
+        networkActions.changeNetworkConnectionState(toggle, mode);
     }
 }

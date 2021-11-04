@@ -21,18 +21,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.stream.Stream;
-
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.vividus.mobileapp.action.NetworkActions;
 import org.vividus.mobileapp.action.NetworkActions.Mode;
-import org.vividus.mobileapp.action.NetworkActions.State;
+import org.vividus.mobileapp.action.NetworkActions.NetworkToggle;
 import org.vividus.selenium.manager.GenericWebDriverManager;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,50 +43,30 @@ class NetworkConditionsStepsTests
     private NetworkConditionsSteps networkConditionsSteps;
 
     @ParameterizedTest
-    @MethodSource("dataProvider")
-    void shouldFailForEnableNetworkConnectionForNotIOS(Mode mode, State state)
+    @EnumSource(value = Mode.class, names = {"ALL", "AIRPLANE_MODE"})
+    void shouldFailForEnableNetworkConnectionForNotIOS(Mode mode)
     {
         when(genericWebDriverManager.isIOS()).thenReturn(true);
         IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
-                () -> networkConditionsSteps.changeNetworkConnection(mode, state));
-        assertEquals(String.format("%s is not supported for IOS", state), iae.getMessage());
+                () -> networkConditionsSteps.changeNetworkConnection(NetworkToggle.OFF, mode));
+        assertEquals(String.format("%s is not supported for IOS", mode), iae.getMessage());
     }
 
     @ParameterizedTest
-    @MethodSource("dataProviderForIOS")
-    void shouldEnableNetworkConnectionForIOS(Mode mode, State state)
+    @EnumSource(value = Mode.class, names = {"WIFI", "MOBILE_DATA"})
+    void shouldEnableNetworkConnectionForIOS(Mode mode)
     {
         when(genericWebDriverManager.isIOS()).thenReturn(true);
-        networkConditionsSteps.changeNetworkConnection(mode, state);
-        verify(networkActions).changeNetworkConnectionState(mode, state);
+        networkConditionsSteps.changeNetworkConnection(NetworkToggle.ON, mode);
+        verify(networkActions).changeNetworkConnectionState(NetworkToggle.ON, mode);
     }
 
     @ParameterizedTest
-    @MethodSource("dataProviderForAndroid")
-    void shouldEnableNetworkConnectionForAndroid(Mode mode, State state)
+    @EnumSource(Mode.class)
+    void shouldEnableNetworkConnectionForAndroid(Mode mode)
     {
         when(genericWebDriverManager.isAndroid()).thenReturn(true);
-        networkConditionsSteps.changeNetworkConnection(mode, state);
-        verify(networkActions).changeNetworkConnectionState(mode, state);
-    }
-
-    private static Stream<Arguments> dataProviderForAndroid()
-    {
-        return Stream.of(Arguments.of(Mode.DISABLE, State.WIFI), Arguments.of(Mode.ENABLE, State.WIFI),
-                Arguments.of(Mode.DISABLE, State.DATA), Arguments.of(Mode.ENABLE, State.DATA),
-                Arguments.of(Mode.DISABLE, State.AIRPLANE_MODE), Arguments.of(Mode.ENABLE, State.AIRPLANE_MODE),
-                Arguments.of(Mode.DISABLE, State.ALL), Arguments.of(Mode.ENABLE, State.ALL));
-    }
-
-    private static Stream<Arguments> dataProviderForIOS()
-    {
-        return Stream.of(Arguments.of(Mode.DISABLE, State.WIFI), Arguments.of(Mode.ENABLE, State.WIFI),
-                Arguments.of(Mode.DISABLE, State.DATA), Arguments.of(Mode.ENABLE, State.DATA));
-    }
-
-    private static Stream<Arguments> dataProvider()
-    {
-        return Stream.of(Arguments.of(Mode.DISABLE, State.ALL), Arguments.of(Mode.ENABLE, State.ALL),
-                Arguments.of(Mode.DISABLE, State.AIRPLANE_MODE), Arguments.of(Mode.ENABLE, State.AIRPLANE_MODE));
+        networkConditionsSteps.changeNetworkConnection(NetworkToggle.OFF, mode);
+        verify(networkActions).changeNetworkConnectionState(NetworkToggle.OFF, mode);
     }
 }
