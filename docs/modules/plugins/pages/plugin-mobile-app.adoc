@@ -778,7 +778,7 @@ When I activate application with bundle identifier `$bundleId`.
 
 [source,gherkin]
 ----
-When I turn '$toggle' '$mode' network connection
+When I turn $toggle '$mode' network connection
 ----
 * `$toggle` - The name of the action to be performed
 * `$mode` - The name of the action to be performed
@@ -811,12 +811,12 @@ When I turn '$toggle' '$mode' network connection
 .Turn OFF WIFI for Android
 [source,gherkin]
 ----
-When I turn 'OFF' `WIFI` network connection
+When I turn OFF `WIFI` network connection
 ----
 
 .Turn OFF WIFI for iOS
 [source,gherkin]
 ----
-When I turn 'OFF' `WIFI` network connection
+When I turn OFF `WIFI` network connection
 When I activate application with bundle identifier `$bundleId`
 ----
