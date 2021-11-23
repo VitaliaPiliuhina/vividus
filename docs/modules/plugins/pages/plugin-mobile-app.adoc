@@ -773,14 +773,11 @@ include::partial$generic-ui-steps.adoc[]
 
 Turn ON/OFF network condition.
 
-TIP: For IOS devices: to return to the application  you must use a step:
-When I activate application with bundle identifier `$bundleId`.
-
 [source,gherkin]
 ----
 When I turn $toggle '$mode' network connection
 ----
-* `$toggle` - The name of the action to be performed
+* `$toggle` - modes of the toggle - ON or OFF
 * `$mode` - The name of the action to be performed
 
 [cols="2,2,2", options="header"]
@@ -802,19 +799,25 @@ When I turn $toggle '$mode' network connection
 |Android
 |Turn ON/OFF Airplane Mode only.
 
-|`ALL`
+|`WIFI_AND_MOBILE_DATA`
 |Android
-|Turn ON/OFF Mobile Data and WiFi state.
+|Turn ON/OFF Mobile Data and Wi-Fi state.
 
 |===
 
-.Turn OFF WIFI for Android
+TIP: For IOS devices: to return to the application you must use the step:
+[source,gherkin]
+----
+When I activate application with bundle identifier `$bundleId`.
+----
+
+.Turn OFF Wi-Fi for Android
 [source,gherkin]
 ----
 When I turn OFF `WIFI` network connection
 ----
 
-.Turn OFF WIFI for iOS
+.Turn OFF Wi-Fi for iOS
 [source,gherkin]
 ----
 When I turn OFF `WIFI` network connection

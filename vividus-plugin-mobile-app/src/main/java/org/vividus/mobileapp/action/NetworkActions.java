@@ -16,8 +16,6 @@
 
 package org.vividus.mobileapp.action;
 
-import java.util.Map;
-
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +30,9 @@ import io.appium.java_client.ios.IOSDriver;
 public class NetworkActions
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkActions.class);
-    private static final String TOGGLE_IS_OFF_VALUE = "1";
-    private static final String TOGGLE_IS_ON_VALUE = "0";
+    private static final String OFF = "1";
+    private static final String ON = "0";
+    private static final String PREFERENCES = "com.apple.Preferences";
     private final IWebDriverProvider webDriverProvider;
     private final GenericWebDriverManager genericWebDriverManager;
 
@@ -53,25 +52,24 @@ public class NetworkActions
         }
         if (genericWebDriverManager.isIOS())
         {
-            changeNetworkConnectionStateForIOS(webDriverProvider, mode, networkToggle);
+            changeNetworkConnectionStateForIOS(webDriverProvider, networkToggle, mode);
         }
     }
 
-    private void changeNetworkConnectionStateForIOS(IWebDriverProvider webDriverProvider, Mode mode,
-            NetworkToggle networkToggle)
+    private void changeNetworkConnectionStateForIOS(IWebDriverProvider webDriverProvider, NetworkToggle networkToggle,
+            Mode mode)
     {
-        Map<String, Object> value = Map.of("bundleId", "com.apple.Preferences");
         IOSDriver driver = webDriverProvider.getUnwrapped(IOSDriver.class);
-        driver.executeScript("mobile: activateApp", value);
+        new ApplicationActions(webDriverProvider).activateApp(PREFERENCES);
         driver.findElementByAccessibilityId(mode.getiOSElementId()).click();
-        WebElement switchBtn = driver.findElementByIosClassChain(
+        WebElement switchButton = driver.findElementByIosClassChain(
                 String.format("**/XCUIElementTypeSwitch[`label == \"%s\"`]", mode.getiOSElementId()));
-        String switchStatus = switchBtn.getAttribute("value");
+        String switchStatus = switchButton.getAttribute("value");
         boolean wiFiTurnedEnable = NetworkToggle.ON == networkToggle;
-        if (TOGGLE_IS_OFF_VALUE.equals(switchStatus) && wiFiTurnedEnable
-                || TOGGLE_IS_ON_VALUE.equals(switchStatus) && !wiFiTurnedEnable)
+        if (OFF.equals(switchStatus) && wiFiTurnedEnable
+                || ON.equals(switchStatus) && !wiFiTurnedEnable)
         {
-            switchBtn.click();
+            switchButton.click();
         }
         else
         {
@@ -81,24 +79,25 @@ public class NetworkActions
 
     public enum Mode
     {
-        WIFI("Wi-Fi", new ConnectionStateBuilder().withWiFiEnabled().build(),
-                new ConnectionStateBuilder().withWiFiDisabled().build()),
-        MOBILE_DATA("Mobile Data", new ConnectionStateBuilder().withDataEnabled().build(),
-                new ConnectionStateBuilder().withDataDisabled().build()),
-        AIRPLANE_MODE(null, new ConnectionStateBuilder().withAirplaneModeEnabled().build(),
-                new ConnectionStateBuilder().withAirplaneModeDisabled().build()),
-        ALL(null, new ConnectionStateBuilder().withWiFiEnabled().withDataEnabled().build(),
-                new ConnectionStateBuilder().withWiFiDisabled().withDataDisabled().build());
+        WIFI("Wi-Fi", new ConnectionStateBuilder().withWiFiEnabled(),
+                new ConnectionStateBuilder().withWiFiDisabled()),
+        MOBILE_DATA("Mobile Data", new ConnectionStateBuilder().withDataEnabled(),
+                new ConnectionStateBuilder().withDataDisabled()),
+        AIRPLANE_MODE(null, new ConnectionStateBuilder().withAirplaneModeEnabled(),
+                new ConnectionStateBuilder().withAirplaneModeDisabled()),
+        WIFI_AND_MOBILE_DATA(null, new ConnectionStateBuilder().withWiFiEnabled().withDataEnabled(),
+                new ConnectionStateBuilder().withWiFiDisabled().withDataDisabled());
 
         private final String iOSElementId;
         private final ConnectionState disabledConnectionState;
         private final ConnectionState enabledConnectionState;
 
-        Mode(String iOSElementId, ConnectionState enabledConnectionState, ConnectionState disabledConnectionState)
+        Mode(String iOSElementId, ConnectionStateBuilder enabledConnectionState,
+                ConnectionStateBuilder disabledConnectionState)
         {
             this.iOSElementId = iOSElementId;
-            this.enabledConnectionState = enabledConnectionState;
-            this.disabledConnectionState = disabledConnectionState;
+            this.enabledConnectionState = enabledConnectionState.build();
+            this.disabledConnectionState = disabledConnectionState.build();
         }
 
         public ConnectionState getDisabledConnectionState()

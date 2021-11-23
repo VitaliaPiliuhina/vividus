@@ -47,6 +47,7 @@ import org.vividus.mobileapp.action.NetworkActions.NetworkToggle;
 import org.vividus.selenium.IWebDriverProvider;
 import org.vividus.selenium.manager.GenericWebDriverManager;
 
+import io.appium.java_client.InteractsWithApps;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.connection.ConnectionState;
 import io.appium.java_client.ios.IOSDriver;
@@ -70,8 +71,8 @@ class NetworkConditionsActionsTests
                 Arguments.of(NetworkToggle.ON, Mode.MOBILE_DATA),
                 Arguments.of(NetworkToggle.OFF, Mode.AIRPLANE_MODE),
                 Arguments.of(NetworkToggle.ON, Mode.AIRPLANE_MODE),
-                Arguments.of(NetworkToggle.OFF, Mode.ALL),
-                Arguments.of(NetworkToggle.ON, Mode.ALL));
+                Arguments.of(NetworkToggle.OFF, Mode.WIFI_AND_MOBILE_DATA),
+                Arguments.of(NetworkToggle.ON, Mode.WIFI_AND_MOBILE_DATA));
     }
 
     @ParameterizedTest
@@ -113,6 +114,10 @@ class NetworkConditionsActionsTests
         when(driver.findElementByIosClassChain(
                 String.format(XCUIELEMENT_TYPE_SWITCH, mode.getiOSElementId()))).thenReturn(switchBtn);
         when(switchBtn.getAttribute(VALUE)).thenReturn(toggleState);
+        InteractsWithApps interactor = mock(InteractsWithApps.class);
+        when(webDriverProvider.getUnwrapped(InteractsWithApps.class)).thenReturn(interactor);
+        when(interactor.isAppInstalled("com.apple.Preferences")).thenReturn(true);
+        when(genericWebDriverManager.isIOS()).thenReturn(true);
         networkActions.changeNetworkConnectionState(toggle, mode);
         return switchBtn;
     }

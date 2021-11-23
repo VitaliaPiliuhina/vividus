@@ -35,9 +35,19 @@ public final class NetworkConditionsSteps
     }
 
     /**
-     * Turn <b>toggle</b> <b>state</b> network connection
+     * Turn <b>toggle</b> <b>mode</b> network connection
      * @param toggle switch ON or OFF mode
      * @param mode is network condition to be executed
+     * <p>The actions performed by the step for iOS:</p>
+     * <ul>
+     * <li>activate Preferences app</li>
+     * <li>open the selected mode</li>
+     * <li>switch toggle if necessary</li>
+     * </ul>
+     * <p>The actions performed by the step for Android:</p>
+     * <ul>
+     * <li>Initializes connection state builder and sets selected mode to disabled/enabled state if necessary</li>
+     * </ul>
      */
     @When("I turn $toggle '$mode' network connection")
     public void changeNetworkConnection(NetworkToggle toggle, Mode mode)
@@ -45,7 +55,7 @@ public final class NetworkConditionsSteps
         Validate.isTrue(
                 genericWebDriverManager.isAndroid()
                         || genericWebDriverManager.isIOS() && (Mode.MOBILE_DATA.equals(mode) || Mode.WIFI.equals(mode)),
-                "%s is not supported for IOS", mode);
+                "%s is not supported for iOS", mode);
         networkActions.changeNetworkConnectionState(toggle, mode);
     }
 }

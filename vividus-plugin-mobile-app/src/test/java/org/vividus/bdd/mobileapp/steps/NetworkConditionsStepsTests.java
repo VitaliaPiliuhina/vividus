@@ -43,13 +43,13 @@ class NetworkConditionsStepsTests
     private NetworkConditionsSteps networkConditionsSteps;
 
     @ParameterizedTest
-    @EnumSource(value = Mode.class, names = {"ALL", "AIRPLANE_MODE"})
+    @EnumSource(value = Mode.class, names = {"WIFI_AND_MOBILE_DATA", "AIRPLANE_MODE"})
     void shouldFailForEnableNetworkConnectionForNotIOS(Mode mode)
     {
         when(genericWebDriverManager.isIOS()).thenReturn(true);
         IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
                 () -> networkConditionsSteps.changeNetworkConnection(NetworkToggle.OFF, mode));
-        assertEquals(String.format("%s is not supported for IOS", mode), iae.getMessage());
+        assertEquals(String.format("%s is not supported for iOS", mode), iae.getMessage());
     }
 
     @ParameterizedTest
