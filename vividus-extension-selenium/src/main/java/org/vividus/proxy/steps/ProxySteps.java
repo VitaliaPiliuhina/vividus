@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,13 @@ import javax.inject.Inject;
 import com.browserup.bup.util.HttpMessageInfo;
 import com.browserup.harreader.model.HarEntry;
 import com.browserup.harreader.model.HttpMethod;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matcher;
 import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
 import org.vividus.context.VariableContext;
+import org.vividus.monitor.PublishHarOnFailure;
 import org.vividus.monitor.TakeScreenshotOnFailure;
 import org.vividus.proxy.IProxy;
 import org.vividus.proxy.model.HttpMessagePart;
@@ -65,8 +65,6 @@ import io.netty.handler.codec.http.HttpVersion;
 @TakeScreenshotOnFailure(onlyInDebugMode = "proxy")
 public class ProxySteps
 {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     @Inject private IProxy proxy;
     @Inject private ISoftAssert softAssert;
     @Inject private IAttachmentPublisher attachmentPublisher;
@@ -104,21 +102,17 @@ public class ProxySteps
      *                       <li>not equal to (!=)</li>
      *                       </ul>
      * @param number         The number to compare with
-     * @throws IOException If any error happens during operation
      * @return Filtered HAR entries
      */
+    @PublishHarOnFailure
     @Then("number of HTTP $httpMethods requests with URL pattern `$urlPattern` is $comparisonRule `$number`")
     public List<HarEntry> checkNumberOfRequests(Set<HttpMethod> httpMethods, Pattern urlPattern,
-            ComparisonRule comparisonRule, int number) throws IOException
+            ComparisonRule comparisonRule, int number)
     {
         List<HarEntry> harEntries = getLogEntries(httpMethods, urlPattern);
         String description = String.format("Number of HTTP %s requests matching URL pattern '%s'",
                 methodsToString(httpMethods, ", "), urlPattern);
-        if (!softAssert.assertThat(description, harEntries.size(), comparisonRule.getComparisonRule(number)))
-        {
-            byte[] harBytes = OBJECT_MAPPER.writeValueAsBytes(proxy.getRecordedData());
-            attachmentPublisher.publishAttachment(harBytes, "har.har");
-        }
+        softAssert.assertThat(description, harEntries.size(), comparisonRule.getComparisonRule(number));
         return harEntries;
     }
 

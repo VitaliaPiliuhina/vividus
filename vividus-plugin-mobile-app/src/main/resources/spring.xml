@@ -35,6 +35,8 @@
 
     <bean class="org.vividus.monitor.GenericScreenshotOnFailureMonitor" />
 
+    <bean class="org.vividus.monitor.GenericHarOnFailureMonitor" />
+
     <bean class="org.vividus.selenium.mobileapp.MobileAppScreenshotTaker" parent="abstractScreenshotTaker"/>
 
     <bean id="applicationSteps" class="org.vividus.mobileapp.steps.ApplicationSteps" />

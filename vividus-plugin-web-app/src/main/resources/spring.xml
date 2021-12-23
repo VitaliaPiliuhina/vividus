@@ -245,6 +245,8 @@
 
     <bean class="org.vividus.monitor.WebScreenshotOnFailureMonitor" parent="abstractScreenshotOnFailureMonitor"/>
 
+    <bean class="org.vividus.monitor.GenericHarOnFailureMonitor" />
+
     <bean class="org.vividus.ui.web.listener.WebSourceCodePublishingOnFailureListener" parent="abstractSourceCodePublishngOnFailureListener" lazy-init="false" />
 
     <bean id="browserWindowSizeProvider" class="org.vividus.selenium.BrowserWindowSizeProvider" >
