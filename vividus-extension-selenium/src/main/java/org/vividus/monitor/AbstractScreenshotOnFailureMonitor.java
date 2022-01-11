@@ -22,22 +22,16 @@ import java.util.List;
 import java.util.Optional;
 
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 
-import org.jbehave.core.model.Scenario;
-import org.jbehave.core.steps.NullStepMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vividus.context.RunContext;
-import org.vividus.model.RunningScenario;
-import org.vividus.model.RunningStory;
 import org.vividus.reporter.event.AttachmentPublishEvent;
 import org.vividus.reporter.model.Attachment;
 import org.vividus.selenium.IWebDriverProvider;
 import org.vividus.selenium.screenshot.Screenshot;
-import org.vividus.softassert.event.AssertionFailedEvent;
 
-public abstract class AbstractScreenshotOnFailureMonitor extends NullStepMonitor
+public abstract class AbstractScreenshotOnFailureMonitor extends AbstractFileOnFailureMonitor
 {
     private static final String NO_SCREENSHOT_ON_FAILURE_META_NAME = "noScreenshotOnFailure";
 
@@ -48,61 +42,34 @@ public abstract class AbstractScreenshotOnFailureMonitor extends NullStepMonitor
     private final ThreadLocal<Boolean> takeScreenshotOnFailureEnabled = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private final EventBus eventBus;
-    private final RunContext runContext;
-    private final IWebDriverProvider webDriverProvider;
 
     public AbstractScreenshotOnFailureMonitor(EventBus eventBus, RunContext runContext,
             IWebDriverProvider webDriverProvider)
     {
+        super(runContext, webDriverProvider, NO_SCREENSHOT_ON_FAILURE_META_NAME);
         this.eventBus = eventBus;
-        this.runContext = runContext;
-        this.webDriverProvider = webDriverProvider;
     }
 
     @Override
-    public void beforePerforming(String step, boolean dryRun, Method method)
+    protected void attachFileOnFailure()
     {
-        if (takeScreenshotOnFailure(method) && !isStoryHasNoScreenshotOnFailureMeta()
-                && !isScenarioHasNoScreenshotsOnFailureMeta())
+        try
         {
-            enableScreenshotOnFailure();
+            takeAssertionFailureScreenshot("Assertion_Failure").ifPresent(screenshot ->
+            {
+                Attachment attachment = new Attachment(screenshot.getData(), screenshot.getFileName());
+                eventBus.post(new AttachmentPublishEvent(attachment));
+            });
+        }
+        // CHECKSTYLE:OFF
+        catch (RuntimeException e)
+        {
+            LOGGER.error("Unable to take a screenshot", e);
         }
     }
 
     @Override
-    public void afterPerforming(String step, boolean dryRun, Method method)
-    {
-        if (takeScreenshotOnFailure(method))
-        {
-            disableScreenshotOnFailure();
-        }
-    }
-
-    @Subscribe
-    public void onAssertionFailure(AssertionFailedEvent event)
-    {
-        if (takeScreenshotOnFailureEnabled.get() && webDriverProvider.isWebDriverInitialized())
-        {
-            try
-            {
-                takeAssertionFailureScreenshot("Assertion_Failure").ifPresent(screenshot ->
-                {
-                    Attachment attachment = new Attachment(screenshot.getData(), screenshot.getFileName());
-                    eventBus.post(new AttachmentPublishEvent(attachment));
-                });
-            }
-            // CHECKSTYLE:OFF
-            catch (RuntimeException e)
-            {
-                LOGGER.error("Unable to take a screenshot", e);
-            }
-            // CHECKSTYLE:ON
-        }
-    }
-
-    protected abstract Optional<Screenshot> takeAssertionFailureScreenshot(String screenshotName);
-
-    private boolean takeScreenshotOnFailure(Method method)
+    protected boolean takeAssertionFailure(Method method)
     {
         if (method != null)
         {
@@ -119,33 +86,15 @@ public abstract class AbstractScreenshotOnFailureMonitor extends NullStepMonitor
         return false;
     }
 
-    private void enableScreenshotOnFailure()
-    {
-        takeScreenshotOnFailureEnabled.set(Boolean.TRUE);
-    }
-
-    private void disableScreenshotOnFailure()
-    {
-        takeScreenshotOnFailureEnabled.set(Boolean.FALSE);
-    }
-
-    private boolean isStoryHasNoScreenshotOnFailureMeta()
-    {
-        RunningStory runningStory = runContext.getRunningStory();
-        return runningStory.getStory().getMeta().hasProperty(NO_SCREENSHOT_ON_FAILURE_META_NAME);
-    }
-
-    private boolean isScenarioHasNoScreenshotsOnFailureMeta()
-    {
-        return Optional.of(runContext.getRunningStory())
-                       .map(RunningStory::getRunningScenario)
-                       .map(RunningScenario::getScenario)
-                       .map(Scenario::getMeta)
-                       .map(m -> m.hasProperty(NO_SCREENSHOT_ON_FAILURE_META_NAME)).orElse(Boolean.FALSE);
-    }
+    protected abstract Optional<Screenshot> takeAssertionFailureScreenshot(String screenshotName);
 
     public void setDebugModes(List<String> debugModes)
     {
         this.debugModes = debugModes;
+    }
+
+    public ThreadLocal<Boolean> takeFileOnFailureEnabled()
+    {
+        return takeScreenshotOnFailureEnabled;
     }
 }

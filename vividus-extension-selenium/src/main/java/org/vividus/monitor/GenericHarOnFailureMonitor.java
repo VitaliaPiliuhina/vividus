@@ -56,7 +56,7 @@ public class GenericHarOnFailureMonitor extends AbstractHarOnFailureMonitor
     private Har createHarWithUniqueEntries(Har har)
     {
         Har newHar;
-        if (0 != harEntries.size() && !har.getLog().getEntries().equals(harEntries))
+        if (!harEntries.isEmpty() && !har.getLog().getEntries().equals(harEntries))
         {
             newHar = addHarLog(har);
             newHar.getLog().getEntries().removeAll(harEntries);
