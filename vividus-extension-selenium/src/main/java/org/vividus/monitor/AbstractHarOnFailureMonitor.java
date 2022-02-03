@@ -19,6 +19,7 @@ package org.vividus.monitor;
 import java.io.IOException;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Optional;
 
 import com.browserup.harreader.model.Har;
@@ -26,6 +27,7 @@ import com.google.common.eventbus.EventBus;
 
 import org.vividus.context.RunContext;
 import org.vividus.reporter.event.AttachmentPublishEvent;
+import org.vividus.reporter.event.IAttachmentPublisher;
 import org.vividus.reporter.model.Attachment;
 import org.vividus.selenium.IWebDriverProvider;
 import org.vividus.util.json.JsonUtils;
@@ -34,19 +36,21 @@ public abstract class AbstractHarOnFailureMonitor extends AbstractFileOnFailureM
 {
     private static final String NO_HAR_ON_FAILURE_META_NAME = "noHarOnFailure";
 
-    private boolean harOnFailure;
+    private boolean harOnFailure = true;
 
     private final ThreadLocal<Boolean> takeHarOnFailureEnabled = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private final EventBus eventBus;
     private final JsonUtils jsonUtils;
+    private final IAttachmentPublisher attachmentPublisher;
 
-    public AbstractHarOnFailureMonitor(EventBus eventBus, JsonUtils jsonUtils,
-            RunContext runContext, IWebDriverProvider webDriverProvider)
+    public AbstractHarOnFailureMonitor(EventBus eventBus, JsonUtils jsonUtils, RunContext runContext,
+            IWebDriverProvider webDriverProvider, IAttachmentPublisher attachmentPublisher)
     {
         super(runContext, webDriverProvider, NO_HAR_ON_FAILURE_META_NAME);
         this.eventBus = eventBus;
         this.jsonUtils = jsonUtils;
+        this.attachmentPublisher = attachmentPublisher;
     }
 
     @Override
@@ -56,6 +60,16 @@ public abstract class AbstractHarOnFailureMonitor extends AbstractFileOnFailureM
             Attachment attachment = new Attachment(jsonUtils.toJsonAsByteArray(har), "har.har");
             eventBus.post(new AttachmentPublishEvent(attachment));
         });
+        addViewer();
+    }
+
+    protected void addViewer() throws IOException
+    {
+        Har har =  takeAssertionFailureHar().get();
+        attachmentPublisher.publishAttachment("/templates/har-viewer.html",
+                Map.of("har", jsonUtils.toJson(har)), "s3u/har-view");
+        attachmentPublisher.publishAttachment("/templates/harView.html",
+                Map.of("har", jsonUtils.toJson(har)), "HAR Viewer");
     }
 
     @Override
@@ -63,8 +77,9 @@ public abstract class AbstractHarOnFailureMonitor extends AbstractFileOnFailureM
     {
         if (!harOnFailure && method != null)
         {
-            AnnotatedElement annotatedElement = method.isAnnotationPresent(PublishHarOnFailure.class) ? method
-                    : method.getDeclaringClass();
+            AnnotatedElement annotatedElement = method.isAnnotationPresent(PublishHarOnFailure.class) ?
+                    method :
+                    method.getDeclaringClass();
             PublishHarOnFailure annotation = annotatedElement.getAnnotation(PublishHarOnFailure.class);
             return annotation != null;
         }

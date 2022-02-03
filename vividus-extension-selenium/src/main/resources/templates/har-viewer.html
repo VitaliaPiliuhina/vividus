@@ -1,0 +1,27 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Har Viewer</title>
+    <link rel='stylesheet' href='../../webjars/css/jquery-ui.css'/>
+    <link rel='stylesheet' href='../../webjars/css/har-viewer.css'/>
+
+</head>
+<body>
+
+<div id="HarViewer"></div>
+<script type='text/javascript' src='../../webjars/scripts/mustache.js'></script>
+<script type='text/javascript' src='../../webjars/scripts/jquery.min.js'></script>
+<script type='text/javascript' src='../../webjars/scripts/jquery-ui.min.js'></script>
+<script type='text/javascript' src="../../webjars/scripts/HarViewer.js"></script>
+
+
+
+<script type='text/javascript'>
+ $(document).ready(function () {
+ $('#HarViewer').HarView();
+var har = $('#HarViewer').data('HarView');
+har.render(${har});
+       });
+  </script>
+</body>
+</html>

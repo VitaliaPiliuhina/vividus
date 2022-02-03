@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HAR Viewer Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body class="harBody">
+<div id="content" version="@VERSION@"></div>
+<script src="../../webjars/viewer/jquery.js"></script>
+<script data-main="../../webjars/viewer/harViewer" src="../../webjars/viewer/require.js"></script>
+<link rel="stylesheet" href="../../webjars/viewer/css/harViewer.css" type="text/css"/>
+<script>
+$("#content").bind("onViewerPreInit", function(event)
+{
+    // Get application object
+    var viewer = event.target.repObject;
+
+    // Remove unnecessary tabs
+    viewer.removeTab("Home");
+    viewer.removeTab("DOM");
+    viewer.removeTab("About");
+    viewer.removeTab("Schema");
+
+    // Hide the tab bar
+    viewer.showTabBar(false);
+});
+</script>
+<script>
+$("#content").bind("onViewerInit", function(event)
+{
+    var viewer = event.target.repObject;
+    var log = ${har};
+    viewer.appendPreview(log);
+});
+</script>
+<script>
+$("#content").bind("onViewerPreInit", function(event)
+{
+// Get application object
+var viewer = event.target.repObject;
+
+// Remove toolbar buttons
+var preview = viewer.getTab("Preview");
+preview.toolbar.removeButton("download");
+preview.toolbar.removeButton("clear");
+});
+</script>
+</body>
+</html>

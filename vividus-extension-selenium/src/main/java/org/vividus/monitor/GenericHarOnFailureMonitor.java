@@ -28,6 +28,7 @@ import com.google.common.eventbus.EventBus;
 
 import org.vividus.context.RunContext;
 import org.vividus.proxy.IProxy;
+import org.vividus.reporter.event.IAttachmentPublisher;
 import org.vividus.selenium.IWebDriverProvider;
 import org.vividus.util.json.JsonUtils;
 
@@ -37,9 +38,9 @@ public class GenericHarOnFailureMonitor extends AbstractHarOnFailureMonitor
     private List<HarEntry> harEntries = new ArrayList<>();
 
     public GenericHarOnFailureMonitor(EventBus eventBus, JsonUtils jsonUtils, RunContext runContext,
-            IWebDriverProvider webDriverProvider)
+            IWebDriverProvider webDriverProvider, IAttachmentPublisher attachmentPublisher)
     {
-        super(eventBus, jsonUtils, runContext, webDriverProvider);
+        super(eventBus, jsonUtils, runContext, webDriverProvider, attachmentPublisher);
     }
 
     @Override
